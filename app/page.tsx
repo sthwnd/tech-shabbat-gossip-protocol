@@ -1,7 +1,7 @@
 "use client";
 
 import { type FormEvent, useEffect, useState } from "react";
-import { ArrowUpRight, Check, Plus } from "lucide-react";
+import { ArrowUpRight, Check, CircleHelp, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type Event = {
   host: string;
@@ -30,6 +43,26 @@ type Submission = {
   announcementPost: string | null;
   createdAt: string;
 };
+
+const defaultCities = [
+  "San Francisco",
+  "Tel Aviv",
+  "New York",
+  "Los Angeles",
+  "London",
+  "Paris",
+  "Berlin",
+  "Lisbon",
+  "Miami",
+  "Austin",
+  "Boston",
+  "Seattle",
+  "Toronto",
+  "Mexico City",
+  "Buenos Aires",
+  "Dubai",
+  "Singapore",
+];
 
 declare global {
   interface Window {
@@ -67,6 +100,7 @@ const pastEvents: Event[] = [
     status: "Past event",
     tweets: [
       "https://x.com/jaredzel/status/2104006536158986377?s=20",
+      "https://x.com/sahar__alon/status/2103960338635067731?s=20",
       "https://x.com/harleyf/status/2104172853784350886?s=20",
     ],
   },
@@ -136,10 +170,18 @@ function TwitterEmbed({ url }: { url: string }) {
   );
 }
 
-function AddShabbatDialog({ onCreated }: { onCreated: (submission: Submission) => void }) {
+function AddShabbatDialog({
+  cities,
+  onCreated,
+}: {
+  cities: string[];
+  onCreated: (submission: Submission) => void;
+}) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [city, setCity] = useState("");
+  const [customCity, setCustomCity] = useState("");
 
   async function submitShabbat(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -148,13 +190,20 @@ function AddShabbatDialog({ onCreated }: { onCreated: (submission: Submission) =
 
     const form = event.currentTarget;
     const formData = new FormData(form);
+    const selectedCity = city === "__other" ? customCity.trim() : city;
+
+    if (!selectedCity) {
+      setFailed(true);
+      setSubmitting(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/shabbats", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          city: formData.get("city"),
+          city: selectedCity,
           eventUrl: formData.get("eventUrl"),
           hostProfile: formData.get("hostProfile"),
           announcementPost: formData.get("announcementPost"),
@@ -166,6 +215,8 @@ function AddShabbatDialog({ onCreated }: { onCreated: (submission: Submission) =
       const payload = (await response.json()) as { submission: Submission };
       onCreated(payload.submission);
       form.reset();
+      setCity("");
+      setCustomCity("");
       setSubmitted(true);
     } catch {
       setFailed(true);
@@ -180,6 +231,8 @@ function AddShabbatDialog({ onCreated }: { onCreated: (submission: Submission) =
         if (!open) {
           setSubmitted(false);
           setFailed(false);
+          setCity("");
+          setCustomCity("");
         }
       }}
     >
@@ -206,18 +259,41 @@ function AddShabbatDialog({ onCreated }: { onCreated: (submission: Submission) =
             >
               <label>
                 <span>City</span>
-                <Input required name="city" autoComplete="address-level2" />
+                <Select value={city} onValueChange={(value) => setCity(value ?? "")}>
+                  <SelectTrigger className="city-select" aria-label="City">
+                    <SelectValue placeholder="Choose a city" />
+                  </SelectTrigger>
+                  <SelectContent className="city-select-content">
+                    {cities.map((option) => (
+                      <SelectItem key={option} value={option}>{option}</SelectItem>
+                    ))}
+                    <SelectItem value="__other">Another city</SelectItem>
+                  </SelectContent>
+                </Select>
               </label>
+              {city === "__other" ? (
+                <label>
+                  <span>City name</span>
+                  <Input
+                    required
+                    value={customCity}
+                    onChange={(event) => setCustomCity(event.target.value)}
+                    autoComplete="address-level2"
+                  />
+                </label>
+              ) : null}
               <label>
                 <span>Event link</span>
                 <Input required name="eventUrl" type="url" placeholder="https://" />
               </label>
               <label>
                 <span>Host profile</span>
+                <small>Twitter or LinkedIn link.</small>
                 <Input required name="hostProfile" type="url" placeholder="https://" />
               </label>
               <label>
-                <span>Announcement post <i>(optional)</i></span>
+                <span>Announcement tweet <i>(optional)</i></span>
+                <small>Link to the tweet announcing the dinner.</small>
                 <Input name="announcementPost" type="url" placeholder="https://" />
               </label>
               {failed ? <p className="form-error" role="alert">Couldn’t add it. Try again.</p> : null}
@@ -284,7 +360,21 @@ function EventCard({ event }: { event: Event }) {
             Request a seat <ArrowUpRight aria-hidden="true" />
           </a>
         ) : (
-          <button className="primary-link" type="button">Cosign the table</button>
+          <div className="cosign-control">
+            <button className="primary-link" type="button">Cosign the table</button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="cosign-help" type="button" aria-label="What does cosign mean?">
+                    <CircleHelp aria-hidden="true" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="cosign-tooltip" sideOffset={8}>
+                  Been to this table—or know the host? Cosign it.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         )}
       </div>
     </article>
@@ -346,6 +436,7 @@ export default function Home() {
   const cities = Array.from(
     new Set(["San Francisco", "Tel Aviv", ...submissions.map((submission) => submission.city)]),
   );
+  const cityOptions = Array.from(new Set([...defaultCities, ...cities]));
 
   function addSubmission(submission: Submission) {
     setSubmissions((current) => [
@@ -361,7 +452,7 @@ export default function Home() {
           <span>TS</span>
           <b>Tech Shabbat<br />Gossip Protocol</b>
         </a>
-        <AddShabbatDialog onCreated={addSubmission} />
+        <AddShabbatDialog cities={cityOptions} onCreated={addSubmission} />
       </header>
 
       <section id="top" className="hero">

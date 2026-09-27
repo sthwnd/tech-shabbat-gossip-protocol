@@ -345,6 +345,27 @@ a { color: inherit; text-decoration: none; }
   border-top: 1px solid #d8c8ab;
   background: #f1eadf;
 }
+.cosign-control { display: inline-flex; align-items: center; gap: 8px; }
+.cosign-help {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #6e6252;
+  cursor: help;
+}
+.cosign-help svg { width: 16px; height: 16px; }
+.cosign-tooltip {
+  max-width: 250px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 13px;
+  line-height: 1.4;
+}
 .primary-link {
   display: inline-flex;
   align-items: center;
@@ -378,7 +399,21 @@ a { color: inherit; text-decoration: none; }
 .submission-form { display: grid; gap: 18px; margin-top: 10px; }
 .submission-form label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .submission-form i { color: #756f66; font-weight: 400; text-transform: none; }
+.submission-form small { color: #756f66; font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; }
 .submission-form input { height: 47px; border: 1px solid #8f816b; border-radius: 0; background: var(--paper-bright); box-shadow: none; }
+.city-select {
+  width: 100%;
+  height: 47px;
+  border: 1px solid #8f816b;
+  border-radius: 0;
+  background: var(--paper-bright);
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.city-select-content { border: 1px solid #8f816b; border-radius: 0; background: var(--paper-bright); }
 .form-error { margin: -2px 0 0; color: #8e1830; font-size: 14px; font-weight: 700; }
 .dialog-submit { height: 47px; margin-top: 8px; border-radius: 0; background: var(--velvet); color: var(--paper); font-weight: 700; }
 .dialog-submit:hover { background: var(--ink); }

@@ -2,6 +2,36 @@ import { desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { shabbatSubmissions } from "../../../db/schema";
 
+const cityAliases: Record<string, string> = {
+  "sf": "San Francisco",
+  "san fran": "San Francisco",
+  "san francisco": "San Francisco",
+  "bay area": "San Francisco",
+  "tlv": "Tel Aviv",
+  "tel-aviv": "Tel Aviv",
+  "tel aviv": "Tel Aviv",
+  "nyc": "New York",
+  "new york city": "New York",
+  "new york": "New York",
+  "la": "Los Angeles",
+  "los angeles": "Los Angeles",
+  "cdmx": "Mexico City",
+  "mexico city": "Mexico City",
+  "dc": "Washington, DC",
+  "washington dc": "Washington, DC",
+  "washington, dc": "Washington, DC",
+};
+
+function normalizeCity(value: unknown) {
+  const city = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+  if (!city) return "";
+
+  const key = city.toLocaleLowerCase("en-US");
+  if (cityAliases[key]) return cityAliases[key];
+
+  return key.replace(/(^|[\s-])\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-US"));
+}
+
 function cleanUrl(value: unknown, required: boolean) {
   const raw = typeof value === "string" ? value.trim() : "";
 
@@ -35,7 +65,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as Record<string, unknown>;
-    const city = typeof payload.city === "string" ? payload.city.trim() : "";
+    const city = normalizeCity(payload.city);
 
     if (!city || city.length > 80) {
       return Response.json({ error: "invalid_city" }, { status: 400 });
@@ -44,6 +74,19 @@ export async function POST(request: Request) {
     const eventUrl = cleanUrl(payload.eventUrl, true)!;
     const hostProfile = cleanUrl(payload.hostProfile, true)!;
     const announcementPost = cleanUrl(payload.announcementPost, false);
+    const hostDomain = new URL(hostProfile).hostname.replace(/^www\./, "");
+
+    if (!["x.com", "twitter.com", "linkedin.com"].includes(hostDomain)) {
+      return Response.json({ error: "invalid_host_profile" }, { status: 400 });
+    }
+
+    if (announcementPost) {
+      const announcementDomain = new URL(announcementPost).hostname.replace(/^www\./, "");
+      if (!["x.com", "twitter.com"].includes(announcementDomain)) {
+        return Response.json({ error: "invalid_announcement" }, { status: 400 });
+      }
+    }
+
     const db = getDb();
 
     const [created] = await db
