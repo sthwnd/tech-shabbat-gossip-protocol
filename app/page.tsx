@@ -1,0 +1,271 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { ArrowUpRight, Check, Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+type Event = {
+  host: string;
+  city: "San Francisco" | "Tel Aviv";
+  date: string;
+  status: "Past event" | "Upcoming event";
+  tweets: string[];
+  eventUrl?: string;
+  lumaBanner?: string;
+};
+
+declare global {
+  interface Window {
+    twttr?: { widgets?: { load: (element?: HTMLElement) => void } };
+  }
+}
+
+const pastEvents: Event[] = [
+  {
+    host: "Katie Kirsch",
+    city: "San Francisco",
+    date: "September 25",
+    status: "Past event",
+    tweets: [
+      "https://x.com/katiekirsch/status/2103729281272811641?s=20",
+      "https://x.com/katiekirsch/status/2100657145075368251?s=20",
+    ],
+  },
+  {
+    host: "Jared + Sahar",
+    city: "San Francisco",
+    date: "September 25",
+    status: "Past event",
+    tweets: [
+      "https://x.com/jaredzel/status/2104006536158986377?s=20",
+      "https://x.com/harleyf/status/2104172853784350886?s=20",
+    ],
+  },
+  {
+    host: "Adam + IsraValley",
+    city: "San Francisco",
+    date: "September 25",
+    status: "Past event",
+    tweets: ["https://x.com/cryptobuilder_/status/2103693756675559672?s=20"],
+  },
+];
+
+const upcomingEvents: Event[] = [
+  {
+    host: "Vitor Zucher",
+    city: "Tel Aviv",
+    date: "October 23",
+    status: "Upcoming event",
+    tweets: ["https://x.com/vzucher/status/2104275755920445875?s=20"],
+    eventUrl: "https://luma.com/bhet1w5c",
+    lumaBanner:
+      "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=contain,dpr=1,anim=false,background=white,quality=85,width=1200,height=630/event-social/n3/2923162e-0420-48b7-8ed0-f6830e4949b4.png",
+  },
+  {
+    host: "Neta Dror",
+    city: "Tel Aviv",
+    date: "Week of October 20",
+    status: "Upcoming event",
+    tweets: ["https://x.com/netadror/status/2103796793452482770?s=20"],
+  },
+];
+
+function TwitterEmbed({ url }: { url: string }) {
+  useEffect(() => {
+    const loadTweets = () => window.twttr?.widgets?.load();
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://platform.twitter.com/widgets.js"]',
+    );
+
+    if (existingScript) {
+      loadTweets();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://platform.twitter.com/widgets.js";
+    script.async = true;
+    script.charset = "utf-8";
+    script.onload = loadTweets;
+    document.body.appendChild(script);
+  }, []);
+
+  return (
+    <div className="tweet-shell">
+      <blockquote
+        className="twitter-tweet"
+        data-dnt="true"
+        data-theme="light"
+        data-conversation="none"
+      >
+        <a href={url} aria-label="Open post on X" />
+      </blockquote>
+    </div>
+  );
+}
+
+function AddShabbatDialog() {
+  const [submitted, setSubmitted] = useState(false);
+
+  return (
+    <Dialog onOpenChange={(open) => !open && setSubmitted(false)}>
+      <DialogTrigger asChild>
+        <Button className="add-button">
+          <Plus aria-hidden="true" />
+          Add a Shabbat
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="submission-dialog">
+        {submitted ? (
+          <div className="success-state">
+            <span className="success-mark"><Check aria-hidden="true" /></span>
+            <DialogTitle>On the map.</DialogTitle>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="dialog-title">Add a Shabbat</DialogTitle>
+            </DialogHeader>
+            <form
+              className="submission-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setSubmitted(true);
+              }}
+            >
+              <label>
+                <span>Event link</span>
+                <Input required type="url" placeholder="https://" />
+              </label>
+              <label>
+                <span>Host profile</span>
+                <Input required type="url" placeholder="https://" />
+              </label>
+              <label>
+                <span>Announcement post <i>(optional)</i></span>
+                <Input type="url" placeholder="https://" />
+              </label>
+              <Button type="submit" className="dialog-submit">Add Shabbat</Button>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EventCard({ event }: { event: Event }) {
+  return (
+    <article className="event-card">
+      <div className="event-intro">
+        <div className="event-meta">
+          <span>{event.status}</span>
+          <span>{event.date}</span>
+        </div>
+        <p className="host-label">Hosted by</p>
+        <h3>{event.host}</h3>
+        <p className="city-label">{event.city}</p>
+      </div>
+
+      {event.lumaBanner ? (
+        <a
+          className="luma-banner"
+          href={event.eventUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img src={event.lumaBanner} alt="" />
+        </a>
+      ) : null}
+
+      <div className="tweet-stack">
+        {event.tweets.map((tweet) => <TwitterEmbed key={tweet} url={tweet} />)}
+      </div>
+
+      <div className="event-actions">
+        {event.eventUrl ? (
+          <a className="primary-link" href={event.eventUrl} target="_blank" rel="noreferrer">
+            Request a seat <ArrowUpRight aria-hidden="true" />
+          </a>
+        ) : (
+          <button className="primary-link" type="button">Cosign the table</button>
+        )}
+      </div>
+    </article>
+  );
+}
+
+export default function Home() {
+  return (
+    <main>
+      <header className="site-header">
+        <a className="wordmark" href="#top" aria-label="Tech Shabbat Gossip Protocol home">
+          <span>TS</span>
+          <b>Tech Shabbat<br />Gossip Protocol</b>
+        </a>
+        <AddShabbatDialog />
+      </header>
+
+      <section id="top" className="hero">
+        <div className="hero-copy">
+          <h1>Not everyone gets a seat at the Shabbat table. But everyone gets the Twitter gossip.</h1>
+          <p className="hero-deck">
+            A distributed network of Friday-night gatherings for founders, builders,
+            investors, and friends around the world.
+          </p>
+          <div className="hero-intro-wrap">
+            <p className="hero-intro">
+              Every Friday, tech Shabbat tables are set around the world. Some are announced.
+              Some are whispered into group chats. Some have a waitlist you’re pretending not
+              to check. Others reveal themselves the next morning, one Twitter post at a time.
+              And some remain exactly where they began: off the record, around a table, without you.
+            </p>
+            <p className="hero-intro">
+              Tech Shabbat Gossip Protocol follows the gossip that escapes the table. Add your
+              gathering, share the gossip, or gaze longingly at the Shabbats you missed.
+            </p>
+          </div>
+        </div>
+
+        <div className="hero-monogram" aria-hidden="true">
+          <div className="monogram-frame">
+            <span>T</span><span>S</span><span>G</span><span>P</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="city-section" aria-labelledby="city-title">
+        <h2 id="city-title">Where Friday night is happening.</h2>
+        <p>Starting with San Francisco and Tel Aviv. The rest of the world can add itself.</p>
+      </section>
+
+      <section className="events-section past-section" aria-labelledby="past-title">
+        <div className="section-heading">
+          <h2 id="past-title">Past events</h2>
+          <span>San Francisco</span>
+        </div>
+        <div className="event-grid event-grid-three">
+          {pastEvents.map((event) => <EventCard key={event.host} event={event} />)}
+        </div>
+      </section>
+
+      <section className="events-section upcoming-section" aria-labelledby="upcoming-title">
+        <div className="section-heading">
+          <h2 id="upcoming-title">Upcoming events</h2>
+          <span>Tel Aviv</span>
+        </div>
+        <div className="event-grid event-grid-two">
+          {upcomingEvents.map((event) => <EventCard key={event.host} event={event} />)}
+        </div>
+      </section>
+    </main>
+  );
+}

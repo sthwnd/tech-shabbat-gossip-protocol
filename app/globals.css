@@ -1,0 +1,404 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../vendor/shadcn-tailwind-4.13.0.css";
+
+:root {
+  --ink: #080707;
+  --velvet: #4a0918;
+  --velvet-deep: #23040b;
+  --paper: #f4efe4;
+  --paper-bright: #fffdf8;
+  --gold: #c9a76b;
+  --gold-soft: #e6d2a9;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--paper-bright);
+  --card-foreground: var(--ink);
+  --popover: var(--paper-bright);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: #e5ddd0;
+  --secondary-foreground: var(--ink);
+  --muted: #e5ddd0;
+  --muted-foreground: #615b53;
+  --accent: var(--gold);
+  --accent-foreground: var(--ink);
+  --destructive: #9f162d;
+  --border: #b7aa96;
+  --input: #b7aa96;
+  --ring: var(--gold);
+  --radius: 0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+}
+button, input { font: inherit; }
+a { color: inherit; text-decoration: none; }
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px clamp(18px, 4vw, 62px);
+  border-bottom: 1px solid rgba(201, 167, 107, 0.48);
+  background: rgba(8, 7, 7, 0.96);
+  color: var(--paper);
+  backdrop-filter: blur(16px);
+}
+.wordmark { display: flex; align-items: center; gap: 13px; }
+.wordmark > span {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  color: var(--gold-soft);
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: 18px;
+  font-style: italic;
+}
+.wordmark b {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+.add-button {
+  height: 40px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  background: transparent;
+  color: var(--gold-soft);
+  padding: 0 17px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.add-button:hover { background: var(--gold); color: var(--ink); }
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.88fr);
+  min-height: calc(100svh - 72px);
+  overflow: hidden;
+  background:
+    linear-gradient(115deg, rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.64)),
+    radial-gradient(circle at 82% 22%, rgba(230, 210, 169, 0.28) 0 2px, transparent 3px),
+    radial-gradient(circle at 76% 38%, rgba(201, 167, 107, 0.2) 0 4px, transparent 5px),
+    radial-gradient(circle at 91% 70%, rgba(230, 210, 169, 0.18) 0 7px, transparent 8px),
+    linear-gradient(140deg, #160307, var(--velvet-deep) 44%, #050404 100%);
+  background-size: auto, 34px 34px, 58px 58px, 92px 92px, auto;
+  color: var(--paper);
+}
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(60px, 8vw, 118px) clamp(24px, 5vw, 82px);
+}
+.hero h1 {
+  max-width: 900px;
+  margin: 0;
+  color: var(--paper-bright);
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(3.15rem, 6vw, 7rem);
+  font-weight: 400;
+  letter-spacing: -0.052em;
+  line-height: 0.91;
+  text-wrap: balance;
+}
+.hero-deck {
+  max-width: 710px;
+  margin: 38px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(201, 167, 107, 0.52);
+  color: var(--gold-soft);
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(1.3rem, 1.85vw, 1.8rem);
+  font-style: italic;
+  line-height: 1.26;
+}
+.hero-intro-wrap {
+  display: grid;
+  max-width: 760px;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 32px;
+}
+.hero-intro {
+  margin: 0;
+  color: rgba(244, 239, 228, 0.72);
+  font-size: 15px;
+  line-height: 1.62;
+}
+.hero-monogram {
+  position: relative;
+  display: grid;
+  min-height: 650px;
+  place-items: center;
+  border-left: 1px solid rgba(201, 167, 107, 0.38);
+}
+.hero-monogram::before,
+.hero-monogram::after {
+  position: absolute;
+  width: 1px;
+  height: 145%;
+  background: linear-gradient(transparent, var(--gold), transparent);
+  content: "";
+  opacity: 0.52;
+}
+.hero-monogram::before { transform: rotate(42deg); }
+.hero-monogram::after { transform: rotate(-42deg); }
+.monogram-frame {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(66%, 430px);
+  aspect-ratio: 1;
+  grid-template-columns: 1fr 1fr;
+  place-items: center;
+  border: 1px solid var(--gold);
+  outline: 1px solid rgba(201, 167, 107, 0.28);
+  outline-offset: 13px;
+  color: var(--gold-soft);
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(5rem, 9vw, 10rem);
+  font-style: italic;
+  line-height: 0.7;
+  text-shadow: 0 0 35px rgba(230, 210, 169, 0.24);
+  transform: rotate(45deg);
+}
+.monogram-frame span { transform: rotate(-45deg); }
+
+.city-section {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 54px;
+  align-items: end;
+  padding: clamp(86px, 11vw, 166px) clamp(24px, 5vw, 82px);
+  border-top: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  background: var(--paper);
+}
+.city-section h2 {
+  max-width: 920px;
+  margin: 0;
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(3.4rem, 7.6vw, 8.7rem);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.86;
+}
+.city-section > p {
+  max-width: 480px;
+  margin: 0 0 8px;
+  padding-left: 25px;
+  border-left: 1px solid var(--gold);
+  color: #4d473f;
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+  font-style: italic;
+  line-height: 1.35;
+}
+
+.events-section { padding: clamp(74px, 9vw, 132px) clamp(18px, 4vw, 64px); }
+.past-section { background: var(--ink); color: var(--paper); }
+.upcoming-section { border-top: 1px solid var(--gold); background: var(--velvet-deep); color: var(--paper); }
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 42px;
+  padding-bottom: 21px;
+  border-bottom: 1px solid rgba(201, 167, 107, 0.52);
+}
+.section-heading h2 {
+  margin: 0;
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(3rem, 5vw, 5.8rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.9;
+}
+.section-heading span {
+  padding-bottom: 4px;
+  color: var(--gold-soft);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.event-grid { display: grid; gap: clamp(18px, 2.2vw, 32px); align-items: start; }
+.event-grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.event-grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.event-card {
+  overflow: hidden;
+  border: 1px solid var(--gold);
+  background: var(--paper-bright);
+  color: var(--ink);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.3);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.event-card:hover { transform: translateY(-5px); box-shadow: 0 28px 75px rgba(0, 0, 0, 0.5); }
+.event-intro { padding: 23px 23px 20px; border-bottom: 1px solid #d8c8ab; }
+.event-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #63594a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.host-label { margin: 35px 0 5px; color: #746a5b; font-family: Didot, "Bodoni 72", Georgia, serif; font-size: 15px; font-style: italic; }
+.event-card h3 {
+  margin: 0;
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(2.1rem, 3vw, 3.8rem);
+  font-weight: 400;
+  letter-spacing: -0.05em;
+  line-height: 0.96;
+}
+.city-label { margin: 11px 0 0; color: var(--velvet); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+.luma-banner {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1200 / 630;
+  place-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid #d8c8ab;
+  background: #fff;
+}
+.luma-banner img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.tweet-stack { display: grid; gap: 1px; background: #d8c8ab; }
+.tweet-shell {
+  display: grid;
+  min-height: 148px;
+  place-items: start center;
+  overflow: hidden;
+  background: white;
+  padding: 10px;
+}
+.tweet-shell .twitter-tweet { width: 100% !important; margin: 0 auto !important; }
+.tweet-shell iframe { width: 100% !important; max-width: 550px !important; margin: 0 auto !important; }
+.event-actions {
+  display: flex;
+  align-items: center;
+  min-height: 66px;
+  padding: 17px 23px;
+  border-top: 1px solid #d8c8ab;
+  background: #f1eadf;
+}
+.primary-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-bottom: 1px solid var(--velvet);
+  background: transparent;
+  color: var(--velvet);
+  padding: 0 0 3px;
+  font-family: Didot, "Bodoni 72", Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 700;
+  cursor: pointer;
+}
+.primary-link svg { width: 14px; }
+
+.submission-dialog {
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  background: var(--paper);
+  padding: 32px;
+  box-shadow: 18px 18px 0 var(--velvet);
+}
+.dialog-title {
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: 2.55rem;
+  font-weight: 400;
+  letter-spacing: -0.05em;
+}
+.submission-form { display: grid; gap: 18px; margin-top: 10px; }
+.submission-form label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.submission-form i { color: #756f66; font-weight: 400; text-transform: none; }
+.submission-form input { height: 47px; border: 1px solid #8f816b; border-radius: 0; background: var(--paper-bright); box-shadow: none; }
+.dialog-submit { height: 47px; margin-top: 8px; border-radius: 0; background: var(--velvet); color: var(--paper); font-weight: 700; }
+.dialog-submit:hover { background: var(--ink); }
+.success-state { display: grid; min-height: 220px; place-items: center; align-content: center; gap: 20px; text-align: center; }
+.success-mark { display: grid; width: 58px; height: 58px; place-items: center; border: 1px solid var(--gold); border-radius: 50%; color: var(--velvet); }
+.success-mark svg { width: 28px; }
+
+@media (max-width: 1080px) {
+  .event-grid-three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-monogram { min-height: 520px; border-top: 1px solid rgba(201, 167, 107, 0.38); border-left: 0; }
+  .city-section { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .site-header { min-height: 64px; padding: 10px 14px; }
+  .wordmark b { display: none; }
+  .wordmark > span { width: 38px; height: 38px; }
+  .add-button { height: 38px; padding: 0 13px; font-size: 11px; }
+  .hero { min-height: auto; }
+  .hero-copy { padding-top: 70px; padding-bottom: 70px; }
+  .hero h1 { font-size: clamp(3.2rem, 15vw, 5.5rem); }
+  .hero-intro-wrap { grid-template-columns: 1fr; }
+  .hero-monogram { min-height: 440px; }
+  .monogram-frame { width: min(68%, 300px); }
+  .city-section { padding-top: 88px; padding-bottom: 88px; }
+  .city-section > p { padding-top: 20px; padding-left: 0; border-top: 1px solid var(--gold); border-left: 0; }
+  .event-grid-three, .event-grid-two { grid-template-columns: 1fr; }
+  .section-heading { align-items: baseline; }
+  .event-card h3 { font-size: 3rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; }
+}
