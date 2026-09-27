@@ -119,7 +119,7 @@ a { color: inherit; text-decoration: none; }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(330px, 0.88fr);
+  grid-template-columns: minmax(0, 1.28fr) minmax(270px, 0.72fr);
   min-height: calc(100svh - 72px);
   overflow: hidden;
   background:
@@ -194,7 +194,7 @@ a { color: inherit; text-decoration: none; }
   position: relative;
   z-index: 1;
   display: grid;
-  width: min(66%, 430px);
+  width: min(50%, 280px);
   aspect-ratio: 1;
   grid-template-columns: 1fr 1fr;
   place-items: center;
@@ -203,7 +203,7 @@ a { color: inherit; text-decoration: none; }
   outline-offset: 13px;
   color: var(--gold-soft);
   font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
-  font-size: clamp(5rem, 9vw, 10rem);
+  font-size: clamp(3.6rem, 5vw, 6rem);
   font-style: italic;
   line-height: 0.7;
   text-shadow: 0 0 35px rgba(230, 210, 169, 0.24);
@@ -269,7 +269,7 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
 }
 .event-grid { display: grid; gap: clamp(18px, 2.2vw, 32px); align-items: start; }
-.event-grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.event-grid-three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .event-grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .event-card {
   overflow: hidden;
@@ -370,13 +370,49 @@ a { color: inherit; text-decoration: none; }
 .success-mark { display: grid; width: 58px; height: 58px; place-items: center; border: 1px solid var(--gold); border-radius: 50%; color: var(--velvet); }
 .success-mark svg { width: 28px; }
 
+.site-footer {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 48px;
+  align-items: end;
+  padding: clamp(70px, 9vw, 128px) clamp(24px, 5vw, 82px);
+  border-top: 1px solid var(--gold);
+  background: var(--ink);
+  color: var(--paper);
+}
+.footer-signoff a {
+  display: inline-block;
+  border-bottom: 1px solid var(--gold);
+  color: var(--gold-soft);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.footer-signoff a:hover { color: var(--paper-bright); }
+.footer-signoff p {
+  margin: 23px 0 0;
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(3.2rem, 7vw, 8rem);
+  font-style: italic;
+  letter-spacing: -0.06em;
+  line-height: 0.86;
+}
+.footer-monogram {
+  color: var(--gold);
+  font-family: Didot, "Bodoni 72", "Bodoni MT", Georgia, serif;
+  font-size: clamp(2rem, 4vw, 4.5rem);
+  font-style: italic;
+  letter-spacing: -0.08em;
+}
+
 @media (max-width: 1080px) {
   .event-grid-three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
-  .hero-monogram { min-height: 520px; border-top: 1px solid rgba(201, 167, 107, 0.38); border-left: 0; }
+  .hero-monogram { min-height: 320px; border-top: 1px solid rgba(201, 167, 107, 0.38); border-left: 0; }
   .city-section { grid-template-columns: 1fr; }
 }
 
@@ -389,13 +425,15 @@ a { color: inherit; text-decoration: none; }
   .hero-copy { padding-top: 70px; padding-bottom: 70px; }
   .hero h1 { font-size: clamp(3.2rem, 15vw, 5.5rem); }
   .hero-intro-wrap { grid-template-columns: 1fr; }
-  .hero-monogram { min-height: 440px; }
-  .monogram-frame { width: min(68%, 300px); }
+  .hero-monogram { min-height: 260px; }
+  .monogram-frame { width: min(54%, 175px); }
   .city-section { padding-top: 88px; padding-bottom: 88px; }
   .city-section > p { padding-top: 20px; padding-left: 0; border-top: 1px solid var(--gold); border-left: 0; }
   .event-grid-three, .event-grid-two { grid-template-columns: 1fr; }
   .section-heading { align-items: baseline; }
   .event-card h3 { font-size: 3rem; }
+  .site-footer { grid-template-columns: 1fr; }
+  .footer-monogram { justify-self: end; }
 }
 
 @media (prefers-reduced-motion: reduce) {

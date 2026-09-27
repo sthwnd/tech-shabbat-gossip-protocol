@@ -37,6 +37,18 @@ const pastEvents: Event[] = [
     tweets: [
       "https://x.com/katiekirsch/status/2103729281272811641?s=20",
       "https://x.com/katiekirsch/status/2100657145075368251?s=20",
+      "https://x.com/LaurenBoles_/status/2103901649123373239?s=20",
+      "https://x.com/katiekirsch/status/2104273617311998411?s=20",
+    ],
+  },
+  {
+    host: "Ashley Paston",
+    city: "San Francisco",
+    date: "September 25",
+    status: "Past event",
+    tweets: [
+      "https://x.com/ashleypaston/status/1978919969313210688?s=20",
+      "https://x.com/ashleypaston/status/2103893577738891417?s=20",
     ],
   },
   {
@@ -54,7 +66,10 @@ const pastEvents: Event[] = [
     city: "San Francisco",
     date: "September 25",
     status: "Past event",
-    tweets: ["https://x.com/cryptobuilder_/status/2103693756675559672?s=20"],
+    tweets: [
+      "https://x.com/cryptobuilder_/status/2103693756675559672?s=20",
+      "https://x.com/adamcohenhillel/status/2103727060216906180?s=20",
+    ],
   },
 ];
 
@@ -266,6 +281,16 @@ export default function Home() {
           {upcomingEvents.map((event) => <EventCard key={event.host} event={event} />)}
         </div>
       </section>
+
+      <footer className="site-footer">
+        <div className="footer-signoff">
+          <a href="https://x.com/cryptobuilder_" target="_blank" rel="noreferrer">
+            Built for you by Lisa Akselrod.
+          </a>
+          <p>XOXO, Shabbat shalom.</p>
+        </div>
+        <span className="footer-monogram" aria-hidden="true">TSGP</span>
+      </footer>
     </main>
   );
 }
