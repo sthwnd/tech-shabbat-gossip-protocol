@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { ArrowUpRight, Check, Plus } from "lucide-react";
 import {
   Dialog,
@@ -20,6 +20,15 @@ type Event = {
   tweets: string[];
   eventUrl?: string;
   lumaBanner?: string;
+};
+
+type Submission = {
+  id: number;
+  city: string;
+  eventUrl: string;
+  hostProfile: string;
+  announcementPost: string | null;
+  createdAt: string;
 };
 
 declare global {
@@ -127,11 +136,53 @@ function TwitterEmbed({ url }: { url: string }) {
   );
 }
 
-function AddShabbatDialog() {
+function AddShabbatDialog({ onCreated }: { onCreated: (submission: Submission) => void }) {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function submitShabbat(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setFailed(false);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("/api/shabbats", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          city: formData.get("city"),
+          eventUrl: formData.get("eventUrl"),
+          hostProfile: formData.get("hostProfile"),
+          announcementPost: formData.get("announcementPost"),
+        }),
+      });
+
+      if (!response.ok) throw new Error("submission failed");
+
+      const payload = (await response.json()) as { submission: Submission };
+      onCreated(payload.submission);
+      form.reset();
+      setSubmitted(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
-    <Dialog onOpenChange={(open) => !open && setSubmitted(false)}>
+    <Dialog
+      onOpenChange={(open) => {
+        if (!open) {
+          setSubmitted(false);
+          setFailed(false);
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button className="add-button">
           <Plus aria-hidden="true" />
@@ -151,30 +202,52 @@ function AddShabbatDialog() {
             </DialogHeader>
             <form
               className="submission-form"
-              onSubmit={(event) => {
-                event.preventDefault();
-                setSubmitted(true);
-              }}
+              onSubmit={submitShabbat}
             >
               <label>
+                <span>City</span>
+                <Input required name="city" autoComplete="address-level2" />
+              </label>
+              <label>
                 <span>Event link</span>
-                <Input required type="url" placeholder="https://" />
+                <Input required name="eventUrl" type="url" placeholder="https://" />
               </label>
               <label>
                 <span>Host profile</span>
-                <Input required type="url" placeholder="https://" />
+                <Input required name="hostProfile" type="url" placeholder="https://" />
               </label>
               <label>
                 <span>Announcement post <i>(optional)</i></span>
-                <Input type="url" placeholder="https://" />
+                <Input name="announcementPost" type="url" placeholder="https://" />
               </label>
-              <Button type="submit" className="dialog-submit">Add Shabbat</Button>
+              {failed ? <p className="form-error" role="alert">Couldn’t add it. Try again.</p> : null}
+              <Button disabled={submitting} type="submit" className="dialog-submit">Add Shabbat</Button>
             </form>
           </>
         )}
       </DialogContent>
     </Dialog>
   );
+}
+
+function hostLabel(profile: string) {
+  try {
+    const url = new URL(profile);
+    const name = url.pathname.split("/").filter(Boolean)[0];
+    return name ? `@${name}` : url.hostname;
+  } catch {
+    return profile;
+  }
+}
+
+function isXPost(url: string | null) {
+  if (!url) return false;
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return host === "x.com" || host === "twitter.com";
+  } catch {
+    return false;
+  }
 }
 
 function EventCard({ event }: { event: Event }) {
@@ -218,7 +291,69 @@ function EventCard({ event }: { event: Event }) {
   );
 }
 
+function CommunityEventCard({ event }: { event: Submission }) {
+  return (
+    <article className="event-card">
+      <div className="event-intro">
+        <div className="event-meta">
+          <span>Upcoming event</span>
+          <span>{event.city}</span>
+        </div>
+        <p className="host-label">Hosted by</p>
+        <h3>
+          <a href={event.hostProfile} target="_blank" rel="noreferrer">
+            {hostLabel(event.hostProfile)}
+          </a>
+        </h3>
+      </div>
+
+      {isXPost(event.announcementPost) ? (
+        <div className="tweet-stack">
+          <TwitterEmbed url={event.announcementPost!} />
+        </div>
+      ) : null}
+
+      <div className="event-actions">
+        <a className="primary-link" href={event.eventUrl} target="_blank" rel="noreferrer">
+          Request a seat <ArrowUpRight aria-hidden="true" />
+        </a>
+      </div>
+    </article>
+  );
+}
+
 export default function Home() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/shabbats")
+      .then((response) => {
+        if (!response.ok) throw new Error("load failed");
+        return response.json() as Promise<{ submissions: Submission[] }>;
+      })
+      .then((payload) => {
+        if (active) setSubmissions(payload.submissions);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const cities = Array.from(
+    new Set(["San Francisco", "Tel Aviv", ...submissions.map((submission) => submission.city)]),
+  );
+
+  function addSubmission(submission: Submission) {
+    setSubmissions((current) => [
+      submission,
+      ...current.filter((item) => item.id !== submission.id),
+    ]);
+  }
+
   return (
     <main>
       <header className="site-header">
@@ -226,7 +361,7 @@ export default function Home() {
           <span>TS</span>
           <b>Tech Shabbat<br />Gossip Protocol</b>
         </a>
-        <AddShabbatDialog />
+        <AddShabbatDialog onCreated={addSubmission} />
       </header>
 
       <section id="top" className="hero">
@@ -259,7 +394,12 @@ export default function Home() {
 
       <section className="city-section" aria-labelledby="city-title">
         <h2 id="city-title">Where Friday night is happening.</h2>
-        <p>Starting with San Francisco and Tel Aviv. The rest of the world can add itself.</p>
+        <div className="city-description">
+          <p>Starting with San Francisco and Tel Aviv. The rest of the world can add itself.</p>
+          <div className="city-list">
+            {cities.map((city) => <span key={city}>{city}</span>)}
+          </div>
+        </div>
       </section>
 
       <section className="events-section past-section" aria-labelledby="past-title">
@@ -275,10 +415,11 @@ export default function Home() {
       <section className="events-section upcoming-section" aria-labelledby="upcoming-title">
         <div className="section-heading">
           <h2 id="upcoming-title">Upcoming events</h2>
-          <span>Tel Aviv</span>
+          <span>{cities.slice(1).join(" · ")}</span>
         </div>
         <div className="event-grid event-grid-two">
           {upcomingEvents.map((event) => <EventCard key={event.host} event={event} />)}
+          {submissions.map((event) => <CommunityEventCard key={event.id} event={event} />)}
         </div>
       </section>
 

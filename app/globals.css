@@ -230,7 +230,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.065em;
   line-height: 0.86;
 }
-.city-section > p {
+.city-description > p {
   max-width: 480px;
   margin: 0 0 8px;
   padding-left: 25px;
@@ -240,6 +240,21 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(1.2rem, 2vw, 1.65rem);
   font-style: italic;
   line-height: 1.35;
+}
+.city-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+.city-list span {
+  border: 1px solid var(--gold);
+  padding: 8px 11px 7px;
+  color: var(--velvet);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .events-section { padding: clamp(74px, 9vw, 132px) clamp(18px, 4vw, 64px); }
@@ -364,6 +379,7 @@ a { color: inherit; text-decoration: none; }
 .submission-form label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .submission-form i { color: #756f66; font-weight: 400; text-transform: none; }
 .submission-form input { height: 47px; border: 1px solid #8f816b; border-radius: 0; background: var(--paper-bright); box-shadow: none; }
+.form-error { margin: -2px 0 0; color: #8e1830; font-size: 14px; font-weight: 700; }
 .dialog-submit { height: 47px; margin-top: 8px; border-radius: 0; background: var(--velvet); color: var(--paper); font-weight: 700; }
 .dialog-submit:hover { background: var(--ink); }
 .success-state { display: grid; min-height: 220px; place-items: center; align-content: center; gap: 20px; text-align: center; }
@@ -428,7 +444,7 @@ a { color: inherit; text-decoration: none; }
   .hero-monogram { min-height: 260px; }
   .monogram-frame { width: min(54%, 175px); }
   .city-section { padding-top: 88px; padding-bottom: 88px; }
-  .city-section > p { padding-top: 20px; padding-left: 0; border-top: 1px solid var(--gold); border-left: 0; }
+  .city-description > p { padding-top: 20px; padding-left: 0; border-top: 1px solid var(--gold); border-left: 0; }
   .event-grid-three, .event-grid-two { grid-template-columns: 1fr; }
   .section-heading { align-items: baseline; }
   .event-card h3 { font-size: 3rem; }
