@@ -145,7 +145,7 @@ a { color: inherit; text-decoration: none; }
   font-size: clamp(3.15rem, 6vw, 7rem);
   font-weight: 400;
   letter-spacing: -0.052em;
-  line-height: 0.91;
+  line-height: 1;
   text-wrap: balance;
 }
 .hero-deck {
