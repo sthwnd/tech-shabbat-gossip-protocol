@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { asc, count, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { eventCosigns } from "../../../db/schema";
 
@@ -32,16 +32,32 @@ async function countForEvent(eventKey: string) {
   return Number(result?.value ?? 0);
 }
 
+async function profilesForEvent(eventKey: string) {
+  const db = getDb();
+  const rows = await db
+    .select({ profileUrl: eventCosigns.profileUrl })
+    .from(eventCosigns)
+    .where(eq(eventCosigns.eventKey, eventKey))
+    .orderBy(asc(eventCosigns.createdAt));
+  return rows.map((row) => row.profileUrl);
+}
+
 export async function GET() {
   try {
     const db = getDb();
     const rows = await db
-      .select({ eventKey: eventCosigns.eventKey, value: count() })
+      .select({ eventKey: eventCosigns.eventKey, profileUrl: eventCosigns.profileUrl })
       .from(eventCosigns)
-      .groupBy(eventCosigns.eventKey);
+      .orderBy(asc(eventCosigns.createdAt));
+
+    const cosigners: Record<string, string[]> = {};
+    for (const row of rows) {
+      cosigners[row.eventKey] = [...(cosigners[row.eventKey] ?? []), row.profileUrl];
+    }
 
     return Response.json({
-      counts: Object.fromEntries(rows.map((row) => [row.eventKey, Number(row.value)])),
+      counts: Object.fromEntries(Object.entries(cosigners).map(([eventKey, profiles]) => [eventKey, profiles.length])),
+      cosigners,
     });
   } catch (error) {
     console.error("Unable to load cosigns", error);
@@ -64,6 +80,7 @@ export async function POST(request: Request) {
 
     return Response.json({
       count: await countForEvent(eventKey),
+      cosigners: await profilesForEvent(eventKey),
       created: Boolean(created),
     }, { status: created ? 201 : 200 });
   } catch (error) {

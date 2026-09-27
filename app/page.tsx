@@ -359,7 +359,7 @@ function CosignDialog({
   eventKey: string;
   host: string;
   count: number;
-  onCosigned: (count: number) => void;
+  onCosigned: (count: number, cosigners: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -383,8 +383,12 @@ function CosignDialog({
       });
       if (!response.ok) throw new Error("cosign failed");
 
-      const payload = (await response.json()) as { count: number; created: boolean };
-      onCosigned(payload.count);
+      const payload = (await response.json()) as {
+        count: number;
+        cosigners: string[];
+        created: boolean;
+      };
+      onCosigned(payload.count, payload.cosigners);
       setAlreadyCounted(!payload.created);
       setSubmitted(true);
       form.reset();
@@ -429,7 +433,7 @@ function CosignDialog({
             <form className="submission-form" onSubmit={submitCosign}>
               <label>
                 <span>Your profile</span>
-                <small>Twitter or LinkedIn. One cosign per profile.</small>
+                <small>Twitter or LinkedIn. Shown publicly with your cosign.</small>
                 <Input required name="profileUrl" type="url" placeholder="https://" />
               </label>
               {failed ? <p className="form-error" role="alert">Use a valid Twitter or LinkedIn profile.</p> : null}
@@ -453,7 +457,7 @@ function CosignControl({
   eventKey: string;
   host: string;
   count: number;
-  onCosigned: (count: number) => void;
+  onCosigned: (count: number, cosigners: string[]) => void;
 }) {
   return (
     <div className="cosign-control">
@@ -470,6 +474,25 @@ function CosignControl({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+    </div>
+  );
+}
+
+function CosignerList({ profiles }: { profiles: string[] }) {
+  if (profiles.length === 0) return null;
+  const visible = profiles.slice(0, 8);
+
+  return (
+    <div className="cosigner-list">
+      <span>Cosigned by</span>
+      <div>
+        {visible.map((profile) => (
+          <a key={profile} href={profile} target="_blank" rel="noreferrer">
+            {hostLabel(profile)}
+          </a>
+        ))}
+        {profiles.length > visible.length ? <b>+{profiles.length - visible.length}</b> : null}
+      </div>
     </div>
   );
 }
@@ -555,11 +578,13 @@ function EventCard({
   cosignCount,
   onCosigned,
   gossipLinks,
+  cosigners,
 }: {
   event: Event;
   cosignCount: number;
-  onCosigned: (count: number) => void;
+  onCosigned: (count: number, cosigners: string[]) => void;
   gossipLinks: string[];
+  cosigners: string[];
 }) {
   const tweets = Array.from(new Set([...event.tweets, ...gossipLinks]));
 
@@ -604,6 +629,7 @@ function EventCard({
         />
         <GossipDialog eventKey={event.id} />
       </div>
+      <CosignerList profiles={cosigners} />
     </article>
   );
 }
@@ -613,11 +639,13 @@ function CommunityEventCard({
   cosignCount,
   onCosigned,
   gossipLinks,
+  cosigners,
 }: {
   event: Submission;
   cosignCount: number;
-  onCosigned: (count: number) => void;
+  onCosigned: (count: number, cosigners: string[]) => void;
   gossipLinks: string[];
+  cosigners: string[];
 }) {
   const tweets = Array.from(new Set([
     ...(isXPost(event.announcementPost) ? [event.announcementPost!] : []),
@@ -662,6 +690,7 @@ function CommunityEventCard({
         />
         <GossipDialog eventKey={`submission-${event.id}`} />
       </div>
+      <CosignerList profiles={cosigners} />
     </article>
   );
 }
@@ -669,6 +698,7 @@ function CommunityEventCard({
 export default function Home() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [cosignCounts, setCosignCounts] = useState<Record<string, number>>({});
+  const [cosigners, setCosigners] = useState<Record<string, string[]>>({});
   const [gossip, setGossip] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
@@ -687,10 +717,16 @@ export default function Home() {
     fetch("/api/cosigns")
       .then((response) => {
         if (!response.ok) throw new Error("load failed");
-        return response.json() as Promise<{ counts: Record<string, number> }>;
+        return response.json() as Promise<{
+          counts: Record<string, number>;
+          cosigners: Record<string, string[]>;
+        }>;
       })
       .then((payload) => {
-        if (active) setCosignCounts(payload.counts);
+        if (active) {
+          setCosignCounts(payload.counts);
+          setCosigners(payload.cosigners);
+        }
       })
       .catch(() => undefined);
 
@@ -714,8 +750,9 @@ export default function Home() {
   );
   const cityOptions = Array.from(new Set([...defaultCities, ...cities]));
 
-  function updateCosignCount(eventKey: string, count: number) {
+  function updateCosign(eventKey: string, count: number, profiles: string[]) {
     setCosignCounts((current) => ({ ...current, [eventKey]: count }));
+    setCosigners((current) => ({ ...current, [eventKey]: profiles }));
   }
 
   return (
@@ -777,8 +814,9 @@ export default function Home() {
               key={event.id}
               event={event}
               cosignCount={cosignCounts[event.id] ?? 0}
-              onCosigned={(count) => updateCosignCount(event.id, count)}
+              onCosigned={(count, profiles) => updateCosign(event.id, count, profiles)}
               gossipLinks={gossip[event.id] ?? []}
+              cosigners={cosigners[event.id] ?? []}
             />
           ))}
         </div>
@@ -795,8 +833,9 @@ export default function Home() {
               key={event.id}
               event={event}
               cosignCount={cosignCounts[event.id] ?? 0}
-              onCosigned={(count) => updateCosignCount(event.id, count)}
+              onCosigned={(count, profiles) => updateCosign(event.id, count, profiles)}
               gossipLinks={gossip[event.id] ?? []}
+              cosigners={cosigners[event.id] ?? []}
             />
           ))}
           {submissions.map((event) => {
@@ -806,8 +845,9 @@ export default function Home() {
                 key={event.id}
                 event={event}
                 cosignCount={cosignCounts[eventKey] ?? 0}
-                onCosigned={(count) => updateCosignCount(eventKey, count)}
+                onCosigned={(count, profiles) => updateCosign(eventKey, count, profiles)}
                 gossipLinks={gossip[eventKey] ?? []}
+                cosigners={cosigners[eventKey] ?? []}
               />
             );
           })}
