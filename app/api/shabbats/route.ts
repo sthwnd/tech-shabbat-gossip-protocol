@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { shabbatSubmissions } from "../../../db/schema";
+import { notifyNewShabbat } from "../../../lib/email";
 
 const cityAliases: Record<string, string> = {
   "sf": "San Francisco",
@@ -97,6 +98,11 @@ export async function POST(request: Request) {
       .returning();
 
     if (created) {
+      try {
+        await notifyNewShabbat(created);
+      } catch (error) {
+        console.error("Unable to send pending Shabbat notification", error);
+      }
       return Response.json({ submission: created, moderation: "pending" }, { status: 201 });
     }
 
