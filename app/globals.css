@@ -368,6 +368,14 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   line-height: 1.4;
 }
+.primary-link,
+.gossip-link {
+  font-family: Didot, "Bodoni 72", Georgia, serif;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 700;
+}
+
 .primary-link {
   display: inline-flex;
   align-items: center;
@@ -377,10 +385,6 @@ a { color: inherit; text-decoration: none; }
   background: transparent;
   color: var(--velvet);
   padding: 0 0 3px;
-  font-family: Didot, "Bodoni 72", Georgia, serif;
-  font-size: 16px;
-  font-style: italic;
-  font-weight: 700;
   cursor: pointer;
 }
 .primary-link svg { width: 14px; }
@@ -400,8 +404,6 @@ a { color: inherit; text-decoration: none; }
   background: transparent;
   color: #62594c;
   padding: 0 0 3px;
-  font-size: 13px;
-  font-weight: 700;
   cursor: pointer;
 }
 .cosigner-list {
