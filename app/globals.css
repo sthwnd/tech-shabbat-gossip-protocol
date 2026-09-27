@@ -382,6 +382,16 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
 }
 .primary-link svg { width: 14px; }
+.announcement-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 18px;
+  color: #62594c;
+  font-size: 13px;
+  font-weight: 700;
+}
+.announcement-link svg { width: 14px; }
 
 .submission-dialog {
   border: 1px solid var(--gold);

@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
     if (announcementPost) {
       const announcementDomain = new URL(announcementPost).hostname.replace(/^www\./, "");
-      if (!["x.com", "twitter.com"].includes(announcementDomain)) {
+      if (!["x.com", "twitter.com", "linkedin.com"].includes(announcementDomain)) {
         return Response.json({ error: "invalid_announcement" }, { status: 400 });
       }
     }

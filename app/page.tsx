@@ -292,8 +292,8 @@ function AddShabbatDialog({
                 <Input required name="hostProfile" type="url" placeholder="https://" />
               </label>
               <label>
-                <span>Announcement tweet <i>(optional)</i></span>
-                <small>Link to the tweet announcing the dinner.</small>
+                <span>Announcement post <i>(optional)</i></span>
+                <small>Twitter or LinkedIn link.</small>
                 <Input name="announcementPost" type="url" placeholder="https://" />
               </label>
               {failed ? <p className="form-error" role="alert">Couldn’t add it. Try again.</p> : null}
@@ -309,7 +309,15 @@ function AddShabbatDialog({
 function hostLabel(profile: string) {
   try {
     const url = new URL(profile);
-    const name = url.pathname.split("/").filter(Boolean)[0];
+    const path = url.pathname.split("/").filter(Boolean);
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "linkedin.com") {
+      const name = path.at(-1);
+      return name ? name.replace(/-/g, " ") : "LinkedIn";
+    }
+
+    const name = path[0];
     return name ? `@${name}` : url.hostname;
   } catch {
     return profile;
@@ -321,6 +329,15 @@ function isXPost(url: string | null) {
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");
     return host === "x.com" || host === "twitter.com";
+  } catch {
+    return false;
+  }
+}
+
+function isLinkedInPost(url: string | null) {
+  if (!url) return false;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "") === "linkedin.com";
   } catch {
     return false;
   }
@@ -407,6 +424,11 @@ function CommunityEventCard({ event }: { event: Submission }) {
         <a className="primary-link" href={event.eventUrl} target="_blank" rel="noreferrer">
           Request a seat <ArrowUpRight aria-hidden="true" />
         </a>
+        {isLinkedInPost(event.announcementPost) ? (
+          <a className="announcement-link" href={event.announcementPost!} target="_blank" rel="noreferrer">
+            Announcement <ArrowUpRight aria-hidden="true" />
+          </a>
+        ) : null}
       </div>
     </article>
   );
