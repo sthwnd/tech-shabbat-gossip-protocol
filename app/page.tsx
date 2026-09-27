@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 
 type Event = {
+  id: string;
   host: string;
   city: "San Francisco" | "Tel Aviv";
   date: string;
@@ -72,6 +73,7 @@ declare global {
 
 const pastEvents: Event[] = [
   {
+    id: "katie-kirsch-sf-2026-09-25",
     host: "Katie Kirsch",
     city: "San Francisco",
     date: "September 25",
@@ -84,6 +86,7 @@ const pastEvents: Event[] = [
     ],
   },
   {
+    id: "ashley-paston-sf-2026-09-25",
     host: "Ashley Paston",
     city: "San Francisco",
     date: "September 25",
@@ -94,6 +97,7 @@ const pastEvents: Event[] = [
     ],
   },
   {
+    id: "jared-sahar-sf-2026-09-25",
     host: "Jared + Sahar",
     city: "San Francisco",
     date: "September 25",
@@ -105,6 +109,7 @@ const pastEvents: Event[] = [
     ],
   },
   {
+    id: "adam-isravalley-sf-2026-09-25",
     host: "Adam + IsraValley",
     city: "San Francisco",
     date: "September 25",
@@ -118,6 +123,7 @@ const pastEvents: Event[] = [
 
 const upcomingEvents: Event[] = [
   {
+    id: "vitor-zucher-tlv-2026-10-23",
     host: "Vitor Zucher",
     city: "Tel Aviv",
     date: "October 23",
@@ -128,6 +134,7 @@ const upcomingEvents: Event[] = [
       "https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=contain,dpr=1,anim=false,background=white,quality=85,width=1200,height=630/event-social/n3/2923162e-0420-48b7-8ed0-f6830e4949b4.png",
   },
   {
+    id: "neta-dror-tlv-2026-10",
     host: "Neta Dror",
     city: "Tel Aviv",
     date: "Week of October 20",
@@ -172,10 +179,8 @@ function TwitterEmbed({ url }: { url: string }) {
 
 function AddShabbatDialog({
   cities,
-  onCreated,
 }: {
   cities: string[];
-  onCreated: (submission: Submission) => void;
 }) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -212,8 +217,7 @@ function AddShabbatDialog({
 
       if (!response.ok) throw new Error("submission failed");
 
-      const payload = (await response.json()) as { submission: Submission };
-      onCreated(payload.submission);
+      await response.json();
       form.reset();
       setCity("");
       setCustomCity("");
@@ -246,7 +250,10 @@ function AddShabbatDialog({
         {submitted ? (
           <div className="success-state">
             <span className="success-mark"><Check aria-hidden="true" /></span>
-            <DialogTitle>On the map.</DialogTitle>
+            <div>
+              <DialogTitle>Submitted.</DialogTitle>
+              <p>Pending Lisa’s approval.</p>
+            </div>
           </div>
         ) : (
           <>
@@ -343,7 +350,219 @@ function isLinkedInPost(url: string | null) {
   }
 }
 
-function EventCard({ event }: { event: Event }) {
+function CosignDialog({
+  eventKey,
+  host,
+  count,
+  onCosigned,
+}: {
+  eventKey: string;
+  host: string;
+  count: number;
+  onCosigned: (count: number) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [alreadyCounted, setAlreadyCounted] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function submitCosign(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setFailed(false);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("/api/cosigns", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventKey, profileUrl: formData.get("profileUrl") }),
+      });
+      if (!response.ok) throw new Error("cosign failed");
+
+      const payload = (await response.json()) as { count: number; created: boolean };
+      onCosigned(payload.count);
+      setAlreadyCounted(!payload.created);
+      setSubmitted(true);
+      form.reset();
+    } catch {
+      setFailed(true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setSubmitted(false);
+          setAlreadyCounted(false);
+          setFailed(false);
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <button className="primary-link" type="button">
+          Cosign the table{count > 0 ? ` · ${count}` : ""}
+        </button>
+      </DialogTrigger>
+      <DialogContent className="submission-dialog">
+        {submitted ? (
+          <div className="success-state">
+            <span className="success-mark"><Check aria-hidden="true" /></span>
+            <div>
+              <DialogTitle>{alreadyCounted ? "Already cosigned." : "Cosigned."}</DialogTitle>
+              <p>{host} has your vote.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="dialog-title">Cosign {host}</DialogTitle>
+            </DialogHeader>
+            <form className="submission-form" onSubmit={submitCosign}>
+              <label>
+                <span>Your profile</span>
+                <small>Twitter or LinkedIn. One cosign per profile.</small>
+                <Input required name="profileUrl" type="url" placeholder="https://" />
+              </label>
+              {failed ? <p className="form-error" role="alert">Use a valid Twitter or LinkedIn profile.</p> : null}
+              <Button disabled={submitting} type="submit" className="dialog-submit">
+                {submitting ? "Cosigning…" : "Cosign the table"}
+              </Button>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CosignControl({
+  eventKey,
+  host,
+  count,
+  onCosigned,
+}: {
+  eventKey: string;
+  host: string;
+  count: number;
+  onCosigned: (count: number) => void;
+}) {
+  return (
+    <div className="cosign-control">
+      <CosignDialog eventKey={eventKey} host={host} count={count} onCosigned={onCosigned} />
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button className="cosign-help" type="button" aria-label="What does cosign mean?">
+              <CircleHelp aria-hidden="true" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent className="cosign-tooltip" sideOffset={8}>
+            Been to this table or know the host? Cosign it.
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function GossipDialog({ eventKey }: { eventKey: string }) {
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  async function submitGossip(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setFailed(false);
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    try {
+      const response = await fetch("/api/gossip", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventKey, postUrl: formData.get("postUrl") }),
+      });
+      if (!response.ok) throw new Error("gossip failed");
+      await response.json();
+      form.reset();
+      setSubmitted(true);
+    } catch {
+      setFailed(true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+          setSubmitted(false);
+          setFailed(false);
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <button className="gossip-link" type="button">Share gossip</button>
+      </DialogTrigger>
+      <DialogContent className="submission-dialog">
+        {submitted ? (
+          <div className="success-state">
+            <span className="success-mark"><Check aria-hidden="true" /></span>
+            <div>
+              <DialogTitle>Gossip received.</DialogTitle>
+              <p>Pending Lisa’s approval.</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="dialog-title">Share gossip</DialogTitle>
+            </DialogHeader>
+            <form className="submission-form" onSubmit={submitGossip}>
+              <label>
+                <span>Twitter post</span>
+                <small>Link a post from this table.</small>
+                <Input required name="postUrl" type="url" placeholder="https://x.com/…/status/…" />
+              </label>
+              {failed ? <p className="form-error" role="alert">Use a valid Twitter post link.</p> : null}
+              <Button disabled={submitting} type="submit" className="dialog-submit">
+                {submitting ? "Whispering…" : "Send gossip"}
+              </Button>
+            </form>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EventCard({
+  event,
+  cosignCount,
+  onCosigned,
+  gossipLinks,
+}: {
+  event: Event;
+  cosignCount: number;
+  onCosigned: (count: number) => void;
+  gossipLinks: string[];
+}) {
+  const tweets = Array.from(new Set([...event.tweets, ...gossipLinks]));
+
   return (
     <article className="event-card">
       <div className="event-intro">
@@ -368,7 +587,7 @@ function EventCard({ event }: { event: Event }) {
       ) : null}
 
       <div className="tweet-stack">
-        {event.tweets.map((tweet) => <TwitterEmbed key={tweet} url={tweet} />)}
+        {tweets.map((tweet) => <TwitterEmbed key={tweet} url={tweet} />)}
       </div>
 
       <div className="event-actions">
@@ -376,29 +595,35 @@ function EventCard({ event }: { event: Event }) {
           <a className="primary-link" href={event.eventUrl} target="_blank" rel="noreferrer">
             Request a seat <ArrowUpRight aria-hidden="true" />
           </a>
-        ) : (
-          <div className="cosign-control">
-            <button className="primary-link" type="button">Cosign the table</button>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="cosign-help" type="button" aria-label="What does cosign mean?">
-                    <CircleHelp aria-hidden="true" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="cosign-tooltip" sideOffset={8}>
-                  Been to this table or know the host? Cosign it.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
+        ) : null}
+        <CosignControl
+          eventKey={event.id}
+          host={event.host}
+          count={cosignCount}
+          onCosigned={onCosigned}
+        />
+        <GossipDialog eventKey={event.id} />
       </div>
     </article>
   );
 }
 
-function CommunityEventCard({ event }: { event: Submission }) {
+function CommunityEventCard({
+  event,
+  cosignCount,
+  onCosigned,
+  gossipLinks,
+}: {
+  event: Submission;
+  cosignCount: number;
+  onCosigned: (count: number) => void;
+  gossipLinks: string[];
+}) {
+  const tweets = Array.from(new Set([
+    ...(isXPost(event.announcementPost) ? [event.announcementPost!] : []),
+    ...gossipLinks,
+  ]));
+
   return (
     <article className="event-card">
       <div className="event-intro">
@@ -414,9 +639,9 @@ function CommunityEventCard({ event }: { event: Submission }) {
         </h3>
       </div>
 
-      {isXPost(event.announcementPost) ? (
+      {tweets.length > 0 ? (
         <div className="tweet-stack">
-          <TwitterEmbed url={event.announcementPost!} />
+          {tweets.map((tweet) => <TwitterEmbed key={tweet} url={tweet} />)}
         </div>
       ) : null}
 
@@ -429,6 +654,13 @@ function CommunityEventCard({ event }: { event: Submission }) {
             Announcement <ArrowUpRight aria-hidden="true" />
           </a>
         ) : null}
+        <CosignControl
+          eventKey={`submission-${event.id}`}
+          host={hostLabel(event.hostProfile)}
+          count={cosignCount}
+          onCosigned={onCosigned}
+        />
+        <GossipDialog eventKey={`submission-${event.id}`} />
       </div>
     </article>
   );
@@ -436,6 +668,8 @@ function CommunityEventCard({ event }: { event: Submission }) {
 
 export default function Home() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [cosignCounts, setCosignCounts] = useState<Record<string, number>>({});
+  const [gossip, setGossip] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     let active = true;
@@ -450,6 +684,26 @@ export default function Home() {
       })
       .catch(() => undefined);
 
+    fetch("/api/cosigns")
+      .then((response) => {
+        if (!response.ok) throw new Error("load failed");
+        return response.json() as Promise<{ counts: Record<string, number> }>;
+      })
+      .then((payload) => {
+        if (active) setCosignCounts(payload.counts);
+      })
+      .catch(() => undefined);
+
+    fetch("/api/gossip")
+      .then((response) => {
+        if (!response.ok) throw new Error("load failed");
+        return response.json() as Promise<{ gossip: Record<string, string[]> }>;
+      })
+      .then((payload) => {
+        if (active) setGossip(payload.gossip);
+      })
+      .catch(() => undefined);
+
     return () => {
       active = false;
     };
@@ -460,11 +714,8 @@ export default function Home() {
   );
   const cityOptions = Array.from(new Set([...defaultCities, ...cities]));
 
-  function addSubmission(submission: Submission) {
-    setSubmissions((current) => [
-      submission,
-      ...current.filter((item) => item.id !== submission.id),
-    ]);
+  function updateCosignCount(eventKey: string, count: number) {
+    setCosignCounts((current) => ({ ...current, [eventKey]: count }));
   }
 
   return (
@@ -474,7 +725,7 @@ export default function Home() {
           <span>TS</span>
           <b>Tech Shabbat<br />Gossip Protocol</b>
         </a>
-        <AddShabbatDialog cities={cityOptions} onCreated={addSubmission} />
+        <AddShabbatDialog cities={cityOptions} />
       </header>
 
       <section id="top" className="hero">
@@ -521,7 +772,15 @@ export default function Home() {
           <span>San Francisco</span>
         </div>
         <div className="event-grid event-grid-three">
-          {pastEvents.map((event) => <EventCard key={event.host} event={event} />)}
+          {pastEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              cosignCount={cosignCounts[event.id] ?? 0}
+              onCosigned={(count) => updateCosignCount(event.id, count)}
+              gossipLinks={gossip[event.id] ?? []}
+            />
+          ))}
         </div>
       </section>
 
@@ -531,8 +790,27 @@ export default function Home() {
           <span>{cities.slice(1).join(" · ")}</span>
         </div>
         <div className="event-grid event-grid-two">
-          {upcomingEvents.map((event) => <EventCard key={event.host} event={event} />)}
-          {submissions.map((event) => <CommunityEventCard key={event.id} event={event} />)}
+          {upcomingEvents.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              cosignCount={cosignCounts[event.id] ?? 0}
+              onCosigned={(count) => updateCosignCount(event.id, count)}
+              gossipLinks={gossip[event.id] ?? []}
+            />
+          ))}
+          {submissions.map((event) => {
+            const eventKey = `submission-${event.id}`;
+            return (
+              <CommunityEventCard
+                key={event.id}
+                event={event}
+                cosignCount={cosignCounts[eventKey] ?? 0}
+                onCosigned={(count) => updateCosignCount(eventKey, count)}
+                gossipLinks={gossip[eventKey] ?? []}
+              />
+            );
+          })}
         </div>
       </section>
 

@@ -52,6 +52,7 @@ export async function GET() {
     const submissions = await db
       .select()
       .from(shabbatSubmissions)
+      .where(eq(shabbatSubmissions.status, "approved"))
       .orderBy(desc(shabbatSubmissions.createdAt), desc(shabbatSubmissions.id))
       .limit(50);
 
@@ -96,7 +97,7 @@ export async function POST(request: Request) {
       .returning();
 
     if (created) {
-      return Response.json({ submission: created }, { status: 201 });
+      return Response.json({ submission: created, moderation: "pending" }, { status: 201 });
     }
 
     const [existing] = await db
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
       .where(eq(shabbatSubmissions.eventUrl, eventUrl))
       .limit(1);
 
-    return Response.json({ submission: existing }, { status: 200 });
+    return Response.json({ submission: existing, moderation: existing?.status ?? "pending" }, { status: 200 });
   } catch (error) {
     console.error("Unable to save Shabbat submission", error);
     return Response.json({ error: "invalid_submission" }, { status: 400 });

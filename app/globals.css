@@ -339,7 +339,9 @@ a { color: inherit; text-decoration: none; }
 .tweet-shell iframe { width: 100% !important; max-width: 550px !important; margin: 0 auto !important; }
 .event-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 16px 24px;
   min-height: 66px;
   padding: 17px 23px;
   border-top: 1px solid #d8c8ab;
@@ -392,6 +394,16 @@ a { color: inherit; text-decoration: none; }
   font-weight: 700;
 }
 .announcement-link svg { width: 14px; }
+.gossip-link {
+  border: 0;
+  border-bottom: 1px solid #8f816b;
+  background: transparent;
+  color: #62594c;
+  padding: 0 0 3px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
 
 .submission-dialog {
   border: 1px solid var(--gold);
@@ -428,6 +440,7 @@ a { color: inherit; text-decoration: none; }
 .dialog-submit { height: 47px; margin-top: 8px; border-radius: 0; background: var(--velvet); color: var(--paper); font-weight: 700; }
 .dialog-submit:hover { background: var(--ink); }
 .success-state { display: grid; min-height: 220px; place-items: center; align-content: center; gap: 20px; text-align: center; }
+.success-state p { margin: 8px 0 0; color: #6e6252; font-family: Didot, "Bodoni 72", Georgia, serif; font-style: italic; }
 .success-mark { display: grid; width: 58px; height: 58px; place-items: center; border: 1px solid var(--gold); border-radius: 50%; color: var(--velvet); }
 .success-mark svg { width: 28px; }
 
@@ -467,6 +480,42 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: -0.08em;
 }
 
+.moderation-page {
+  min-height: 100svh;
+  padding: clamp(32px, 6vw, 88px);
+  background: linear-gradient(145deg, var(--velvet-deep), var(--ink));
+  color: var(--paper);
+}
+.moderation-shell { max-width: 1120px; margin: 0 auto; }
+.moderation-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(201, 167, 107, 0.55);
+}
+.moderation-kicker { margin: 0 0 10px; color: var(--gold-soft); font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; }
+.moderation-header h1, .moderation-empty h1 { margin: 0; font-family: Didot, "Bodoni 72", Georgia, serif; font-size: clamp(3rem, 7vw, 7rem); font-weight: 400; letter-spacing: -0.06em; line-height: 0.88; }
+.moderation-nav { display: flex; gap: 18px; }
+.moderation-nav a, .moderation-home { border-bottom: 1px solid var(--gold); color: var(--gold-soft); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.moderation-list { display: grid; gap: 14px; }
+.moderation-section-title { margin: 48px 0 16px; color: var(--gold-soft); font-family: Didot, "Bodoni 72", Georgia, serif; font-size: 2.2rem; font-style: italic; font-weight: 400; }
+.moderation-card { display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center; padding: 24px; border: 1px solid var(--gold); background: var(--paper-bright); color: var(--ink); }
+.moderation-card h2 { margin: 22px 0 16px; font-family: Didot, "Bodoni 72", Georgia, serif; font-size: 2.25rem; font-weight: 400; letter-spacing: -0.04em; }
+.moderation-links { display: flex; flex-wrap: wrap; gap: 16px; }
+.moderation-links a { display: inline-flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--velvet); color: var(--velvet); font-size: 13px; font-weight: 700; }
+.moderation-links svg { width: 13px; }
+.moderation-actions { display: flex; gap: 10px; }
+.moderation-actions button { height: 42px; border-radius: 0; }
+.moderation-actions svg { width: 15px; }
+.approve-button { background: var(--velvet); color: var(--paper); }
+.approve-button:hover { background: var(--ink); }
+.reject-button { border-color: #8f816b; background: transparent; color: var(--ink); }
+.moderation-empty { display: grid; min-height: 45svh; align-content: center; justify-items: start; gap: 24px; color: var(--gold-soft); font-family: Didot, "Bodoni 72", Georgia, serif; font-size: 1.5rem; font-style: italic; }
+.moderation-status { color: var(--gold-soft); font-family: Didot, "Bodoni 72", Georgia, serif; font-size: 1.35rem; font-style: italic; }
+
 @media (max-width: 1080px) {
   .event-grid-three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -495,6 +544,10 @@ a { color: inherit; text-decoration: none; }
   .event-card h3 { font-size: 3rem; }
   .site-footer { grid-template-columns: 1fr; }
   .footer-monogram { justify-self: end; }
+  .moderation-header { align-items: start; flex-direction: column; }
+  .moderation-card { grid-template-columns: 1fr; }
+  .moderation-actions { width: 100%; }
+  .moderation-actions button { flex: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
