@@ -387,7 +387,7 @@ function EventCard({ event }: { event: Event }) {
                   </button>
                 </TooltipTrigger>
                 <TooltipContent className="cosign-tooltip" sideOffset={8}>
-                  Been to this table—or know the host? Cosign it.
+                  Been to this table or know the host? Cosign it.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
