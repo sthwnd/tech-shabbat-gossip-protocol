@@ -5,6 +5,8 @@ export const shabbatSubmissions = sqliteTable(
   "shabbat_submissions",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
+    eventName: text("event_name"),
+    eventDate: text("event_date"),
     city: text("city").notNull(),
     eventUrl: text("event_url").notNull().unique(),
     hostProfile: text("host_profile").notNull(),

@@ -2,6 +2,8 @@ import { env } from "cloudflare:workers";
 
 type PendingShabbat = {
   id: number;
+  eventName: string | null;
+  eventDate: string | null;
   city: string;
   eventUrl: string;
   hostProfile: string;
@@ -26,6 +28,8 @@ export async function notifyNewShabbat(submission: PendingShabbat) {
   if (!apiKey || !from || !to) return { sent: false, reason: "not_configured" as const };
 
   const city = escapeHtml(submission.city);
+  const eventName = escapeHtml(submission.eventName || `Shabbat #${submission.id}`);
+  const eventDate = submission.eventDate ? escapeHtml(submission.eventDate) : "";
   const eventUrl = escapeHtml(submission.eventUrl);
   const hostProfile = escapeHtml(submission.hostProfile);
   const announcement = submission.announcementPost
@@ -42,10 +46,12 @@ export async function notifyNewShabbat(submission: PendingShabbat) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `New Shabbat waiting: ${submission.city}`,
+      subject: `New Shabbat waiting: ${submission.eventName || submission.city}`,
       html: `
         <div style="font-family:Arial,sans-serif;color:#080707;line-height:1.5">
           <h1 style="font-family:Georgia,serif;font-weight:400">A new table is waiting.</h1>
+          <p><strong>Name:</strong> ${eventName}</p>
+          ${eventDate ? `<p><strong>Date:</strong> ${eventDate}</p>` : ""}
           <p><strong>City:</strong> ${city}</p>
           <p><strong>Event:</strong> <a href="${eventUrl}">${eventUrl}</a></p>
           <p><strong>Host:</strong> <a href="${hostProfile}">${hostProfile}</a></p>

@@ -38,6 +38,8 @@ type Event = {
 
 type Submission = {
   id: number;
+  eventName: string | null;
+  eventDate: string | null;
   city: string;
   eventUrl: string;
   hostProfile: string;
@@ -208,6 +210,8 @@ function AddShabbatDialog({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          eventName: formData.get("eventName"),
+          eventDate: formData.get("eventDate"),
           city: selectedCity,
           eventUrl: formData.get("eventUrl"),
           hostProfile: formData.get("hostProfile"),
@@ -264,6 +268,14 @@ function AddShabbatDialog({
               className="submission-form"
               onSubmit={submitShabbat}
             >
+              <label>
+                <span>Event name</span>
+                <Input required name="eventName" maxLength={120} />
+              </label>
+              <label>
+                <span>Date</span>
+                <Input required name="eventDate" type="date" />
+              </label>
               <label>
                 <span>City</span>
                 <Select value={city} onValueChange={(value) => setCity(value ?? "")}>
@@ -329,6 +341,19 @@ function hostLabel(profile: string) {
   } catch {
     return profile;
   }
+}
+
+function eventDateLabel(value: string | null) {
+  if (!value) return "";
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return value;
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 function isXPost(url: string | null) {
@@ -657,14 +682,16 @@ function CommunityEventCard({
       <div className="event-intro">
         <div className="event-meta">
           <span>Upcoming event</span>
-          <span>{event.city}</span>
+          <span>{eventDateLabel(event.eventDate) || event.city}</span>
         </div>
-        <p className="host-label">Hosted by</p>
-        <h3>
+        <p className="host-label">
+          Hosted by{" "}
           <a href={event.hostProfile} target="_blank" rel="noreferrer">
             {hostLabel(event.hostProfile)}
           </a>
-        </h3>
+        </p>
+        <h3>{event.eventName || `Shabbat #${event.id}`}</h3>
+        <p className="city-label">{event.city}</p>
       </div>
 
       {tweets.length > 0 ? (

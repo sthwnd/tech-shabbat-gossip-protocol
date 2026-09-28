@@ -47,6 +47,24 @@ function cleanUrl(value: unknown, required: boolean) {
   return url.toString();
 }
 
+function cleanEventName(value: unknown) {
+  const eventName = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+  if (!eventName || eventName.length > 120) throw new Error("invalid_event_name");
+  return eventName;
+}
+
+function cleanEventDate(value: unknown) {
+  const eventDate = typeof value === "string" ? value.trim() : "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDate)) throw new Error("invalid_event_date");
+
+  const parsed = new Date(`${eventDate}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== eventDate) {
+    throw new Error("invalid_event_date");
+  }
+
+  return eventDate;
+}
+
 export async function GET() {
   try {
     const db = getDb();
@@ -67,6 +85,8 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as Record<string, unknown>;
+    const eventName = cleanEventName(payload.eventName);
+    const eventDate = cleanEventDate(payload.eventDate);
     const city = normalizeCity(payload.city);
 
     if (!city || city.length > 80) {
@@ -93,7 +113,7 @@ export async function POST(request: Request) {
 
     const [created] = await db
       .insert(shabbatSubmissions)
-      .values({ city, eventUrl, hostProfile, announcementPost })
+      .values({ eventName, eventDate, city, eventUrl, hostProfile, announcementPost })
       .onConflictDoNothing({ target: shabbatSubmissions.eventUrl })
       .returning();
 

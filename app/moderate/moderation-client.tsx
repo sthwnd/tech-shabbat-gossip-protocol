@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 
 type ModerationSubmission = {
   id: number;
+  eventName: string | null;
+  eventDate: string | null;
   city: string;
   eventUrl: string;
   hostProfile: string;
@@ -19,6 +21,19 @@ type ModerationGossip = {
   postUrl: string;
   createdAt: string;
 };
+
+function eventDateLabel(value: string | null) {
+  if (!value) return "";
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return value;
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
 
 export default function ModerationClient() {
   const [submissions, setSubmissions] = useState<ModerationSubmission[]>([]);
@@ -90,9 +105,12 @@ export default function ModerationClient() {
             <div className="moderation-card-copy">
               <div className="event-meta">
                 <span>Pending</span>
-                <span>{submission.city}</span>
+                <span>
+                  {submission.city}
+                  {submission.eventDate ? ` · ${eventDateLabel(submission.eventDate)}` : ""}
+                </span>
               </div>
-              <h2>Shabbat #{submission.id}</h2>
+              <h2>{submission.eventName || `Shabbat #${submission.id}`}</h2>
               <div className="moderation-links">
                 <a href={submission.eventUrl} target="_blank" rel="noreferrer">
                   Event <ArrowUpRight aria-hidden="true" />
