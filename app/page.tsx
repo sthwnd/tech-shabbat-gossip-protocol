@@ -776,6 +776,19 @@ export default function Home() {
     new Set(["San Francisco", "Tel Aviv", ...submissions.map((submission) => submission.city)]),
   );
   const cityOptions = Array.from(new Set([...defaultCities, ...cities]));
+  const upcomingCities = Array.from(
+    new Set([
+      ...upcomingEvents.map((event) => event.city),
+      ...submissions.map((submission) => submission.city),
+    ]),
+  ).sort((a, b) => {
+    const priority = new Map([
+      ["San Francisco", 0],
+      ["Tel Aviv", 1],
+    ]);
+
+    return (priority.get(a) ?? 2) - (priority.get(b) ?? 2) || a.localeCompare(b);
+  });
 
   function updateCosign(eventKey: string, count: number, profiles: string[]) {
     setCosignCounts((current) => ({ ...current, [eventKey]: count }));
@@ -852,32 +865,43 @@ export default function Home() {
       <section className="events-section upcoming-section" aria-labelledby="upcoming-title">
         <div className="section-heading">
           <h2 id="upcoming-title">Upcoming events</h2>
-          <span>{cities.slice(1).join(" · ")}</span>
+          <span>{upcomingCities.join(" · ")}</span>
         </div>
-        <div className="event-grid event-grid-two">
-          {upcomingEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              cosignCount={cosignCounts[event.id] ?? 0}
-              onCosigned={(count, profiles) => updateCosign(event.id, count, profiles)}
-              gossipLinks={gossip[event.id] ?? []}
-              cosigners={cosigners[event.id] ?? []}
-            />
+        <div className="upcoming-city-groups">
+          {upcomingCities.map((city) => (
+            <div className="upcoming-city-group" key={city}>
+              <h3 className="upcoming-city-heading">{city}</h3>
+              <div className="event-grid event-grid-two">
+                {upcomingEvents
+                  .filter((event) => event.city === city)
+                  .map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      cosignCount={cosignCounts[event.id] ?? 0}
+                      onCosigned={(count, profiles) => updateCosign(event.id, count, profiles)}
+                      gossipLinks={gossip[event.id] ?? []}
+                      cosigners={cosigners[event.id] ?? []}
+                    />
+                  ))}
+                {submissions
+                  .filter((event) => event.city === city)
+                  .map((event) => {
+                    const eventKey = `submission-${event.id}`;
+                    return (
+                      <CommunityEventCard
+                        key={event.id}
+                        event={event}
+                        cosignCount={cosignCounts[eventKey] ?? 0}
+                        onCosigned={(count, profiles) => updateCosign(eventKey, count, profiles)}
+                        gossipLinks={gossip[eventKey] ?? []}
+                        cosigners={cosigners[eventKey] ?? []}
+                      />
+                    );
+                  })}
+              </div>
+            </div>
           ))}
-          {submissions.map((event) => {
-            const eventKey = `submission-${event.id}`;
-            return (
-              <CommunityEventCard
-                key={event.id}
-                event={event}
-                cosignCount={cosignCounts[eventKey] ?? 0}
-                onCosigned={(count, profiles) => updateCosign(eventKey, count, profiles)}
-                gossipLinks={gossip[eventKey] ?? []}
-                cosigners={cosigners[eventKey] ?? []}
-              />
-            );
-          })}
         </div>
       </section>
 
