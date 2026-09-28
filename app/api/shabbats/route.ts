@@ -132,6 +132,38 @@ export async function POST(request: Request) {
       .where(eq(shabbatSubmissions.eventUrl, eventUrl))
       .limit(1);
 
+    if (existing && existing.status !== "approved") {
+      const wasRejected = existing.status === "rejected";
+      const [resubmitted] = await db
+        .update(shabbatSubmissions)
+        .set({
+          eventName,
+          eventDate,
+          city,
+          hostProfile,
+          announcementPost,
+          status: "pending",
+          reviewedAt: null,
+          reviewedBy: null,
+          ...(wasRejected ? { createdAt: new Date().toISOString() } : {}),
+        })
+        .where(eq(shabbatSubmissions.id, existing.id))
+        .returning();
+
+      if (wasRejected && resubmitted) {
+        try {
+          await notifyNewShabbat(resubmitted);
+        } catch (error) {
+          console.error("Unable to send resubmitted Shabbat notification", error);
+        }
+      }
+
+      return Response.json(
+        { submission: resubmitted, moderation: "pending" },
+        { status: wasRejected ? 201 : 200 },
+      );
+    }
+
     return Response.json({ submission: existing, moderation: existing?.status ?? "pending" }, { status: 200 });
   } catch (error) {
     console.error("Unable to save Shabbat submission", error);
